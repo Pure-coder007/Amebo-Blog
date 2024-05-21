@@ -75,6 +75,9 @@
           <li><a href="#" onclick="document.getElementById('id01').style.display='block'" style="width: auto;">Login</a></li>
           <li><a href="#" onclick="document.getElementById('id02').style.display='block'" style="width: auto;">Register</a></li>
           {% endif %}
+          {% if current_user.admin %}
+          <li><a href="{{ url_for('users.create_post')}}">New Post</a></li>
+          {% endif %}
           
           
         </ul>
@@ -138,41 +141,16 @@
           <div class="col-12">
             <div class="swiper sliderFeaturedPosts">
               <div class="swiper-wrapper">
+                  {% for post in posts %}
                 <div class="swiper-slide">
-                  <a href="{{ url_for ('posts.single_post') }}" class="img-bg d-flex align-items-end"  id="img-1" >
+                <a href="{{ url_for ('posts.single_post') }}" class="img-bg d-flex align-items-end" style="background-image: url('{{post.image}}'); ">
                     <div class="img-bg-inner">
-                      <h2>The Best Homemade Masks for Face (keep the Pimples Away)</h2>
-                      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quidem neque est mollitia! Beatae minima assumenda repellat harum vero, officiis ipsam magnam obcaecati cumque maxime inventore repudiandae quidem necessitatibus rem atque.</p>
+                      <p>{{post.title}}</p>
+                      <h2>{{post.content}}</h2>
                     </div>
                   </a>
                 </div>
-
-                <div class="swiper-slide">
-                  <a href="{{ url_for ('posts.single_post') }}" class="img-bg d-flex align-items-end" style="background-image: url('../static/assets/img/post-slide-2.jpg');">
-                    <div class="img-bg-inner">
-                      <h2>17 Pictures of Medium Length Hair in Layers That Will Inspire Your New Haircut</h2>
-                      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quidem neque est mollitia! Beatae minima assumenda repellat harum vero, officiis ipsam magnam obcaecati cumque maxime inventore repudiandae quidem necessitatibus rem atque.</p>
-                    </div>
-                  </a>
-                </div>
-
-                <div class="swiper-slide">
-                  <a href="{{ url_for ('posts.single_post') }}" class="img-bg d-flex align-items-end" style="background-image: url('../static/assets/img/post-slide-3.jpg');">
-                    <div class="img-bg-inner">
-                      <h2>13 Amazing Poems from Shel Silverstein with Valuable Life Lessons</h2>
-                      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quidem neque est mollitia! Beatae minima assumenda repellat harum vero, officiis ipsam magnam obcaecati cumque maxime inventore repudiandae quidem necessitatibus rem atque.</p>
-                    </div>
-                  </a>
-                </div>
-
-                <div class="swiper-slide">
-                  <a href="{{ url_for ('posts.single_post') }}" class="img-bg d-flex align-items-end" style="background-image: url('../static/assets/img/post-slide-4.jpg');">
-                    <div class="img-bg-inner">
-                      <h2>9 Half-up/half-down Hairstyles for Long and Medium Hair</h2>
-                      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quidem neque est mollitia! Beatae minima assumenda repellat harum vero, officiis ipsam magnam obcaecati cumque maxime inventore repudiandae quidem necessitatibus rem atque.</p>
-                    </div>
-                  </a>
-                </div>
+                {% endfor %}
               </div>
               <div class="custom-swiper-button-next">
                 <span class="bi-chevron-right"></span>
@@ -1222,7 +1200,7 @@ span.psw {
 
 <div id="id02" class="modal">
   <span onclick="document.getElementById('id01').style.display='none'" class="close" title="Close Modal">&times;</span>
-  <form class="modal-content" action="" method="post">
+  <form class="modal-content" action="{{ url_for('main.index') }}" method="post">
     <div class="container">
       
       <p>Please fill in this form to create an account.</p>
@@ -1270,7 +1248,7 @@ var myToast = new bootstrap.Toast(document.querySelector('.toast'));
         document.querySelector('.toast').style.transform = 'translateX(-0%)';
         setTimeout(function () {
             // fade the toast away
-            document.querySelector('.toast').style.transition = '2s ease-in-out';
+            document.querySelector('.toast').style.transition = '1s ease-in-out';
             myToast.hide();
         }, 2500);
 

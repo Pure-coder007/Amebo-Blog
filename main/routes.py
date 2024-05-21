@@ -3,6 +3,7 @@ from flask import Flask, url_for, redirect, render_template, request, Blueprint,
 from flask_login import login_user, current_user, logout_user, login_required
 from app_config import db, bcrypt
 from models import User
+from models import Post
 
 
 main = Blueprint('main', __name__)
@@ -11,6 +12,8 @@ main = Blueprint('main', __name__)
 @main.route('/')
 @main.route('/index', methods=['GET', 'POST'])
 def index():
+
+    posts = Post.query.order_by(Post.date_posted.desc()).all()
 
     alert = session.pop('alert', None)
     bg_color = session.pop('bg_color', None)
@@ -51,7 +54,7 @@ def index():
             session['bg_color'] = 'success'
             print('Registration successful, please log in. again')
             return redirect(url_for('main.index'))
-    return render_template('index.html', alert=alert, bg_color=bg_color)
+    return render_template('index.html', alert=alert, bg_color=bg_color, posts=posts)
 
 
 

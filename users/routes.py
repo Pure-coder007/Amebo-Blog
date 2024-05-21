@@ -1,68 +1,62 @@
 from flask import Flask, url_for, redirect, render_template, request, Blueprint, flash, session
 from flask_login import login_user, current_user, logout_user, login_required
 from app_config import db, bcrypt
-from models import User
+from models import User, Post
+from datetime import datetime
+import cloudinary
+import cloudinary.uploader
+from werkzeug.utils import secure_filename
 
 
 users = Blueprint('users', __name__)
 
 
-@users.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('main.home'))
+cloudinary.config(
+    cloud_name = "duyoxldib",
+    api_key = "778871683257166", 
+  api_secret = "NM2WHVuvMytyfnVziuzRScXrrNk"
+)
 
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
 
-        user = User.query.filter_by(email=email).first()
+app = Flask(__name__)
+app.secret_key = 'asdfghjklpoiuytrewqasdfghjklkjhgfdssdftyuikjhgfdsdertyuil'
 
-        if user:
-            flash('Email already exists', 'danger')
-
-        if password != confirm_password:
-            flash('Passwords do not match', 'danger')
-
-        if len(password) < 6:
-            flash('Password must be at least 6 characters', 'danger')
-
-        if not user and len(password) >= 6 and password == confirm_password:
-            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-            user = User(username=username, email=email, password=hashed_password, admin=False)
-            db.session.add(user)
-            db.session.commit()
-            flash('Registration successful', 'success')
-            return redirect(url_for('users.login'))
-
-    return render_template('register.html')
+app.config['UPLOADED_PHOTOS_DEST'] = 'static/assets/img'
 
 
 
-
-
-@users.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('main.home'))
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-        user = User.query.filter_by(email=email).first()
-        if user and bcrypt.check_password_hash(user.password, password):
-            login_user(user)
-            flash('Login successful', 'success')
-            return redirect(url_for('main.home'))
-        else:
-            flash('Login unsuccessful. Please check your credentials', 'danger')
-    return render_template('login.html')
-
-
-
-@users.route('/logout')
+@users.route('/create_post', methods=['GET', 'POST'])
 @login_required
-def logout():
-    logout_user()
-    return redirect(url_for('main.home'))
+def create_post():
+    if not current_user.admin:
+        return redirect(url_for('main.index'))
+
+    if request.method == 'POST':
+        title = request.form.get('title')
+        content = request.form.get('content')
+        date_posted = datetime.now()
+        image = request.files.get('image')
+        user_id = current_user.id
+
+        if image:
+            filename = secure_filename(image.filename)
+            response = cloudinary.uploader.upload(image, public_id=f"posts/{filename}")
+            image = response['secure_url']
+
+        post = Post(title=title, content=content, date_posted=date_posted, image=image, user_id=user_id)
+        db.session.add(post)
+        db.session.commit()
+        flash('Post created successfully', 'success')
+        return redirect(url_for('main.index'))
+    return render_template('create_post.html')
+
+
+
+
+
+# Dispaly all posts
+@users.route('/posts', methods=['GET', 'POST'])
+@login_required
+def posts():
+    posts = Post.query.order_by(Post.date_posted.desc()).all()
+    return render_template('index.html', posts=posts)
